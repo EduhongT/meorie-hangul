@@ -235,8 +235,30 @@ button{font:inherit;color:inherit;cursor:pointer}
 .sgtab{font:inherit;font-size:17px;padding:7px 16px;border:3px solid var(--ink);border-radius:999px;background:#fff;box-shadow:0 3px 0 var(--ink)}
 .sgtab.on{background:#F2C14E}
 .sgvwrap{display:flex;justify-content:center}
-.sgvwrap video{height:min(74vh,calc((100vw - 32px)*16/9));max-width:100%;aspect-ratio:9/16;border:4px solid var(--ink);border-radius:22px;background:#FBF5E6;box-shadow:0 6px 0 var(--ink)}
-.sgvmiss{max-width:420px;text-align:center;line-height:1.6}
+.sgscreen{position:relative;height:min(calc(100dvh - 182px),calc((100vw - 32px)*16/9));aspect-ratio:9/16;max-width:100%;border:4px solid var(--ink);border-radius:22px;background:#FBF5E6;box-shadow:0 6px 0 var(--ink);display:flex;flex-direction:column;align-items:center;gap:1.2%;padding:4% 4% 15%;text-align:center;overflow:hidden;container-type:size}
+.sgscreen:fullscreen{border:0;border-radius:0;height:100vh;width:auto;margin:auto;max-width:100vw}
+.sgst{font-size:3.4cqh;color:#6b6252}
+.sgscreen .sgsec{font-size:2.3cqh}
+.sgscreen .sgvis{flex:1;width:100%}
+.sgscreen .sgvis img{max-height:30cqh;max-width:85cqw}
+.sgscreen .sgpics img{max-height:22cqh}
+.sgscreen .sglyr{font-size:min(6cqh,11cqw);min-height:2.6em;display:flex;align-items:center;justify-content:center}
+.sgbrand{font-size:2.4cqh;padding:.3em 1em;border-radius:999px;background:#fff;border:2px solid var(--ink)}
+.sgscreen .sgone img{height:28cqh}
+.sgscreen .sgbig{font-size:9cqh}
+.sgscreen .sgp{width:36cqw;padding:1cqh}.sgscreen .sgp b{font-size:3.2cqh}
+.sgscreen .sgj,.sgscreen .sgv{font-size:4cqh;gap:1.5cqw}.sgscreen .sgvb b{font-size:5cqh}
+.sgscreen .sghint{font-size:2.8cqh}
+.sgscreen .sgzone{max-width:88cqw;max-height:32cqh;object-fit:cover}.sgscreen .sgzones{max-width:80cqw}
+.sgin{animation:sgin .45s ease}@keyframes sgin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.sgbigplay{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:22cqw;height:22cqw;border-radius:50%;border:4px solid var(--ink);background:var(--sun);font-size:9cqw;box-shadow:0 6px 0 var(--ink);padding-left:1.4cqw}
+.sgvbar{position:absolute;left:3%;right:3%;bottom:2.5%;display:flex;align-items:center;gap:8px;background:#fff;border:2.5px solid var(--ink);border-radius:999px;padding:4px 10px}
+.sgvbar button{font:inherit;font-size:18px;border:0;background:none;width:30px}.sgvbar input{flex:1;accent-color:var(--red)}.sgvbar span{font-size:13px}
+.zcwrap{position:relative;width:min(100%,calc(52vh*1.5));margin:0 auto}
+.zarr{position:absolute;top:50%;transform:translateY(-50%);z-index:20;width:54px;height:54px;font-size:38px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 0 4px;background:#fff}
+.zarr small{position:absolute;bottom:-22px;font-size:12px;white-space:nowrap;color:#2b2b2b;background:#fff;border:1.5px solid var(--ink);border-radius:999px;padding:0 6px;line-height:1.5}
+.zcwrap .zcover{z-index:0}
+.zarr.zl{left:-6px}.zarr.zr{right:-6px}
 .mnw{display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .mnch{font:inherit;font-size:64px;line-height:1.1;padding:2px 14px;border:3px solid var(--ink);border-radius:18px;background:#fff;box-shadow:0 4px 0 var(--ink)}
 .mnch.on{background:#F2C14E}
@@ -467,7 +489,10 @@ let curZone=1, curScene=null;
 function viewZone(z){
   curZone=z; const k=kid(); const zn=ZN.find(x=>x.no===z);
   app.innerHTML=`${bar(zn.name,"viewHome()",`${z}구역`)}
+  ${(()=>{const nos=ZN.map(x=>x.no),i=nos.indexOf(z),pv=nos[(i-1+nos.length)%nos.length],nx=nos[(i+1)%nos.length];
+    return `<div class="zcwrap"><button class="round zarr zl" onclick="viewZone(${pv})" aria-label="이전 구역">‹<small>${pv}구역</small></button>
   <button class="zcover" style="--z:${ZC[z]}" id="zc"><img src="${BRAND['z'+z]}" alt=""><span class="zcap big">${z}구역 · ${zn.name}</span></button>
+  <button class="round zarr zr" onclick="viewZone(${nx})" aria-label="다음 구역">›<small>${nx}구역</small></button></div>`})()}
   <div class="ztitle2 big">장면을 골라요 👇</div>
   <div class="scenes">${SC.filter(s=>s.zone===z).map(s=>{const ws=byScene[s.id];const d=(k.done||{})[s.id]||{};
     return `<button class="scene-btn" style="--z:${ZC[z]}" onclick="viewScene('${s.id}')"><b class="big"><span>${s.name}</span><span style="font-size:16px">👀 ${seenCount(s.id)}/${ws.length}</span></b>
@@ -1089,14 +1114,33 @@ function viewSong(){
 }
 function viewSongVideo(){
   songStop();
-  app.innerHTML=`${bar("노래해요","songVidStop();viewHome()","〈그림 따라 글자 콕콕〉")}
+  if(!SAUD){SAUD=new Audio(SONG.audio);SAUD.preload='auto';}
+  const L=SONG.lines;
+  app.innerHTML=`${bar("노래해요","songStop();viewHome()","〈그림 따라 글자 콕콕〉")}
   <div class="sgtabs"><button class="sgtab" id="sgsing">🎤 따라 부르기</button><button class="sgtab on">🎬 노래 영상</button></div>
-  <div class="sgvwrap"><video id="sgv" src="song.mp4" controls playsinline preload="metadata"></video>
-  <div class="sgvmiss card" id="sgvmiss" hidden><b class="big">영상을 찾지 못했어요</b><p>노래 영상(song.mp4)이 앱 파일과 같은 곳에 있어야 보여요.<br>「따라 부르기」에서는 노래를 그대로 들을 수 있어요.</p></div></div>`;
-  const v=$("#sgv");
-  v.onerror=()=>{v.hidden=true;$("#sgvmiss").hidden=false;};
-  v.onended=()=>{star();cheer('노래 끝!','〈그림 따라 글자 콕콕〉 영상을 다 봤어요.','viewSongVideo()','viewHome()');};
-  $("#sgsing").onclick=()=>{songVidStop();viewSong();};
+  <div class="sgvwrap"><div class="sgscreen" id="sgscr">
+    <div class="sgst">🎵 그림 따라 글자 콕콕</div><div class="sgsec" id="vsec"></div>
+    <div class="sgvis" id="vvis"></div><div class="sglyr big" id="vlyr"></div>
+    <div class="sgbrand big">머리에 그리는® 한글</div>
+    <button class="sgbigplay" id="vplay" aria-label="재생">▶</button>
+    <div class="sgvbar"><button id="vpp" aria-label="재생">▶</button><input type="range" id="vpos" min="0" max="120" step="0.1" value="0"><span id="vtime">0:00</span><button id="vfs" aria-label="크게 보기">⛶</button></div>
+  </div></div>`;
+  let cur=-1;
+  const show=i=>{if(i===cur)return;cur=i;const l=L[i];$("#vsec").textContent=l.sec;const v=$("#vvis"),y=$("#vlyr");v.innerHTML=songVis(l);y.textContent=l.text;[v,y].forEach(e=>{e.classList.remove('sgin');void e.offsetWidth;e.classList.add('sgin');});};
+  const idx=t=>{let k=0;for(let i=0;i<L.length;i++){if(L[i].t<=t+0.05)k=i;}return k;};
+  const fmt=t=>`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`;
+  const ui=()=>{const pl=!SAUD.paused;$("#vpp").textContent=pl?'⏸':'▶';$("#vplay").hidden=pl;};
+  const tick=()=>{if(!$("#vpos"))return;const t=SAUD.currentTime||0;show(idx(t));$("#vpos").value=t;$("#vtime").textContent=fmt(t);};
+  SAUD.ontimeupdate=tick;
+  SAUD.onloadedmetadata=()=>{if($("#vpos"))$("#vpos").max=SAUD.duration;};
+  if(SAUD.duration)$("#vpos").max=SAUD.duration;
+  SAUD.onended=()=>{if(!$("#vpp"))return;ui();star();cheer('노래 끝!','〈그림 따라 글자 콕콕〉 영상을 다 봤어요.','viewSongVideo()','viewHome()');};
+  const toggle=()=>{if(SAUD.paused)SAUD.play().catch(()=>{});else SAUD.pause();setTimeout(ui,50);};
+  $("#vplay").onclick=toggle;$("#vpp").onclick=toggle;$("#vvis").onclick=toggle;
+  $("#vpos").oninput=e=>{SAUD.currentTime=+e.target.value;tick();};
+  $("#vfs").onclick=()=>{const e=$("#sgscr");try{if(document.fullscreenElement)document.exitFullscreen();else(e.requestFullscreen||e.webkitRequestFullscreen).call(e);}catch(x){}};
+  $("#sgsing").onclick=()=>{songStop();viewSong();};
+  show(idx(SAUD.currentTime||0));ui();
 }
 function songVidStop(){const v=document.getElementById('sgv');if(v){try{v.pause();}catch(e){}}}
 

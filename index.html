@@ -181,7 +181,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .jgbtn.ok{background:#DDEBD0}.jgbtn.no{background:#eee;opacity:.5}
 .sgstage{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center;height:min(50dvh,500px)}
 .sgvb{display:flex;flex-direction:column;align-items:center;background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:4px 8px}.sgvb b{font-size:40px;font-weight:400;line-height:1.1}.sgvb .one{font-size:16px;border:0}
-@media (min-width:700px) and (min-aspect-ratio:5/4){.sgwrap{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;align-items:start}.sgstage{height:calc(100dvh - 210px)}.sglist{max-height:calc(100dvh - 200px)!important;height:calc(100dvh - 200px)}.sgright{display:flex;flex-direction:column}}
+@media (min-width:700px) and (min-aspect-ratio:5/4){.sgwrap{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;align-items:start}.sgstage{height:calc(100dvh - 260px)}.sglist{max-height:calc(100dvh - 250px)!important;height:calc(100dvh - 250px)}.sgright{display:flex;flex-direction:column}}
 .sgsec{font-size:14px;padding:2px 12px;border:2px solid var(--ink);border-radius:12px;background:var(--sun)}
 .sgvis{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:100%;min-height:0}
 .sgpics{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
@@ -202,7 +202,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .sgplay{width:64px;height:64px;font-size:28px;flex:none;background:var(--sun)}
 .sgctl input{flex:1;accent-color:var(--red)}
 .sgctl span{font-size:15px;min-width:40px}
-.sglist{max-height:calc(100dvh - min(50dvh,500px) - 200px);min-height:90px;overflow:auto;border:2.5px solid var(--ink);border-radius:16px;background:#fff;padding:6px}
+.sglist{max-height:calc(100dvh - min(50dvh,500px) - 264px);min-height:90px;overflow:auto;border:2.5px solid var(--ink);border-radius:16px;background:#fff;padding:6px}
 .sghd{font-size:13px;color:#8a8170;margin:8px 6px 2px}
 .sgline{display:block;width:100%;text-align:left;border:0;background:none;font:inherit;font-size:17px;padding:6px 8px;border-radius:10px;word-break:keep-all}
 .sgline.on{background:#FFF1C9;color:var(--red)}
@@ -231,6 +231,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 .rw.rd{background:#F2C14E;color:#2b2b2b;box-shadow:0 0 0 3px #F2C14E}
 .rw.rdone{color:#8a8170}
 .note .paths{margin:6px 0 10px;padding-left:20px}.note .paths li{margin:5px 0;line-height:1.55}
+.sgtabs{display:flex;gap:8px;justify-content:center;margin:2px 0 10px}
+.sgtab{font:inherit;font-size:17px;padding:7px 16px;border:3px solid var(--ink);border-radius:999px;background:#fff;box-shadow:0 3px 0 var(--ink)}
+.sgtab.on{background:#F2C14E}
+.sgvwrap{display:flex;justify-content:center}
+.sgvwrap video{height:min(74vh,calc((100vw - 32px)*16/9));max-width:100%;aspect-ratio:9/16;border:4px solid var(--ink);border-radius:22px;background:#FBF5E6;box-shadow:0 6px 0 var(--ink)}
+.sgvmiss{max-width:420px;text-align:center;line-height:1.6}
 .mnw{display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .mnch{font:inherit;font-size:64px;line-height:1.1;padding:2px 14px;border:3px solid var(--ink);border-radius:18px;background:#fff;box-shadow:0 4px 0 var(--ink)}
 .mnch.on{background:#F2C14E}
@@ -1039,7 +1045,7 @@ function askBatchim(){
 
 /* 노래해요 */
 let SAUD=null;
-function songStop(){try{if(SAUD){SAUD.pause();}}catch(e){}}
+function songStop(){songVidStop();try{if(SAUD){SAUD.pause();}}catch(e){}}
 function songVis(l){
   const wi=ko=>W.find(w=>w.ko===ko);
   const pics=ws=>`<div class="sgpics">${ws.map(ko=>{const w=wi(ko);return w?`<div class="sgp">${img(w)}<b class="big">${ko}</b></div>`:''}).join('')}</div>`;
@@ -1060,6 +1066,7 @@ function viewSong(){
   if(!SAUD){SAUD=new Audio(SONG.audio);SAUD.preload='auto';}
   const L=SONG.lines;
   app.innerHTML=`${bar("노래해요","songStop();viewHome()","〈그림 따라 글자 콕콕〉")}
+  <div class="sgtabs"><button class="sgtab on">🎤 따라 부르기</button><button class="sgtab" id="sgvid">🎬 노래 영상</button></div>
   <div class="sgwrap"><div class="sgstage card"><div class="sgsec" id="sgsec"></div><div class="sgvis" id="sgvis"></div><div class="sglyr big" id="sglyr"></div></div>
   <div class="sgright"><div class="sgctl"><button class="round sgplay" id="sgplay" aria-label="재생">▶</button><input type="range" id="sgpos" min="0" max="120" step="0.1" value="0"><span id="sgtime">0:00</span></div>
   <div class="sglist" id="sglist">${L.map((l,i)=>(i===0||L[i-1].sec!==l.sec?`<div class="sghd">${l.sec}</div>`:'')+`<button class="sgline" data-i="${i}">${l.text}</button>`).join('')}</div></div></div>`;
@@ -1077,8 +1084,21 @@ function viewSong(){
   $("#sgpos").oninput=e=>{SAUD.currentTime=+e.target.value;tick();};
   lines.forEach(b=>b.onclick=()=>{SAUD.currentTime=L[+b.dataset.i].t+0.01;tick();if(SAUD.paused){SAUD.play().catch(()=>{});$("#sgplay").textContent='⏸';}});
   if(!SAUD.paused)$("#sgplay").textContent='⏸';
+  $("#sgvid").onclick=()=>{songStop();viewSongVideo();};
   show(idx(SAUD.currentTime||0));
 }
+function viewSongVideo(){
+  songStop();
+  app.innerHTML=`${bar("노래해요","songVidStop();viewHome()","〈그림 따라 글자 콕콕〉")}
+  <div class="sgtabs"><button class="sgtab" id="sgsing">🎤 따라 부르기</button><button class="sgtab on">🎬 노래 영상</button></div>
+  <div class="sgvwrap"><video id="sgv" src="song.mp4" controls playsinline preload="metadata"></video>
+  <div class="sgvmiss card" id="sgvmiss" hidden><b class="big">영상을 찾지 못했어요</b><p>노래 영상(song.mp4)이 앱 파일과 같은 곳에 있어야 보여요.<br>「따라 부르기」에서는 노래를 그대로 들을 수 있어요.</p></div></div>`;
+  const v=$("#sgv");
+  v.onerror=()=>{v.hidden=true;$("#sgvmiss").hidden=false;};
+  v.onended=()=>{star();cheer('노래 끝!','〈그림 따라 글자 콕콕〉 영상을 다 봤어요.','viewSongVideo()','viewHome()');};
+  $("#sgsing").onclick=()=>{songVidStop();viewSong();};
+}
+function songVidStop(){const v=document.getElementById('sgv');if(v){try{v.pause();}catch(e){}}}
 
 /* 칭찬 */
 function cheer(title,sub,again,home,stk){
